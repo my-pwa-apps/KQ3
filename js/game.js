@@ -1,3 +1,6 @@
+import * as CANNON from 'cannon';
+window.CANNON = CANNON;
+
 import { ManannanSystem } from './systems/manannan-system.js';
 import { ModelBuilder } from './builders/model-builder.js';
 import { InteractionSystem } from './systems/interaction-system.js';
@@ -46,9 +49,10 @@ class Game {
         const scene = new BABYLON.Scene(this.engine);
         
         // Enable physics with optimized settings
-        const gravityVector = new BABYLON.Vector3(0, -9.81, 0);
-        const physicsPlugin = new BABYLON.CannonJSPlugin(true, 10);
-        scene.enablePhysics(gravityVector, physicsPlugin);
+        scene.enablePhysics(
+            new BABYLON.Vector3(0, -9.81, 0),
+            new BABYLON.CannonJSPlugin(true, 10)
+        );
         
         // Optimize physics simulation
         scene.getPhysicsEngine().setTimeStep(1/60);
