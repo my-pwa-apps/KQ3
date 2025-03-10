@@ -2,6 +2,7 @@ import { ManannanSystem } from './systems/manannan-system.js';
 import { ModelBuilder } from './builders/model-builder.js';
 import { InteractionSystem } from './systems/interaction-system.js';
 import { RoomBuilder } from './builders/room-builder.js';
+import { NavigationSystem } from './systems/navigation-system.js';
 
 class Game {
     constructor() {
@@ -26,20 +27,27 @@ class Game {
         scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
         try {
-            // Basic scene setup
+            // Start with a regular camera first
             const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 1.6, 0), scene);
             camera.attachControl(this.canvas, true);
+            
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
             
             // Initialize XR first
             const xrHelper = await this.setupVR(scene);
             
-            // Initialize systems after XR
+            // Initialize systems
             this.modelBuilder = new ModelBuilder(scene);
             this.interactionSystem = new InteractionSystem(scene, xrHelper);
-            this.manannanSystem = new ManannanSystem(scene, this.modelBuilder);
             
+            // Create the full house with all rooms
             await RoomBuilder.createRoom(scene);
+            
+            // Setup navigation between rooms
+            this.navigationSystem = new NavigationSystem(scene, camera);
+            
+            // Add Manannan system last so he appears in all rooms
+            this.manannanSystem = new ManannanSystem(scene, this.modelBuilder);
             
             return scene;
         } catch (error) {
