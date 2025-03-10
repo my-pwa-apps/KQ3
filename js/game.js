@@ -3,51 +3,83 @@ import { ModelBuilder } from './builders/model-builder.js';
 import { InteractionSystem } from './systems/interaction-system.js';
 import { RoomBuilder } from './builders/room-builder.js';
 import { NavigationSystem } from './systems/navigation-system.js';
+import { InventorySystem } from './systems/inventory-system.js';
+import { CatSystem } from './systems/cat-system.js';
+import { VRMovementSystem } from './systems/vr-movement-system.js';
 
 class Game {
     constructor() {
-        this.init().catch(console.error);
+        this.systems = [];
+        this.init().catch(this.handleError);
+    }
+
+    handleError(error) {
+        console.error("Game error:", error);
+        document.body.innerHTML = `<div style="color:white;background:rgba(0,0,0,0.7);padding:20px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
+            <h2>An error occurred</h2>
+            <p>${error.message || error}</p>
+            <button onclick="location.reload()">Reload</button>
+        </div>`;
     }
 
     async init() {
         try {
             this.canvas = document.getElementById("renderCanvas");
-            this.engine = new BABYLON.Engine(this.canvas, true);
+            this.engine = new BABYLON.Engine(this.canvas, true, { 
+                stencil: true,
+                adaptToDeviceRatio: true,
+                powerPreference: "high-performance"
+            });
+            
             this.scene = await this.createScene();
             
             this.engine.runRenderLoop(() => this.scene.render());
             window.addEventListener("resize", () => this.engine.resize());
+            window.addEventListener("beforeunload", () => this.cleanup());
         } catch (error) {
-            console.error("Failed to initialize game:", error);
+            this.handleError(error);
         }
     }
 
     async createScene() {
         const scene = new BABYLON.Scene(this.engine);
         scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
+        scene.useRightHandedSystem = true; // Helps with VR consistency
 
         try {
-            // Start with a regular camera first
+            // Camera and basic scene setup
             const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 1.6, 0), scene);
             camera.attachControl(this.canvas, true);
+            camera.speed = 0.15;
+            camera.keysUp = [87, 38];
+            camera.keysDown = [83, 40];
+            camera.keysLeft = [65, 37];
+            camera.keysRight = [68, 39];
+            camera.checkCollisions = true;
+            camera.ellipsoid = new BABYLON.Vector3(0.5, 0.9, 0.5);
+            
+            scene.collisionsEnabled = true;
+            scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
             
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
             
-            // Initialize XR first
+            // Initialize WebXR first
             const xrHelper = await this.setupVR(scene);
             
-            // Initialize systems
+            // Initialize systems in correct order
             this.modelBuilder = new ModelBuilder(scene);
-            this.interactionSystem = new InteractionSystem(scene, xrHelper);
+            scene.modelBuilder = this.modelBuilder;
             
-            // Create the full house with all rooms
-            await RoomBuilder.createRoom(scene);
+            // Create rooms with optimized mesh instances
+            const house = await RoomBuilder.createRoom(scene);
             
-            // Setup navigation between rooms
-            this.navigationSystem = new NavigationSystem(scene, camera);
-            
-            // Add Manannan system last so he appears in all rooms
-            this.manannanSystem = new ManannanSystem(scene, this.modelBuilder);
+            // Add systems and store references for cleanup
+            this.addSystem(new InteractionSystem(scene, xrHelper));
+            this.addSystem(new InventorySystem(scene));
+            this.addSystem(new CatSystem(scene, this.modelBuilder));
+            this.addSystem(new NavigationSystem(scene, camera));
+            this.addSystem(new VRMovementSystem(scene, xrHelper));
+            this.addSystem(new ManannanSystem(scene, this.modelBuilder));
             
             return scene;
         } catch (error) {
@@ -55,18 +87,59 @@ class Game {
             throw error;
         }
     }
+    
+    addSystem(system) {
+        if (system) {
+            this.systems.push(system);
+        }
+    }
 
     async setupVR(scene) {
         try {
+            // Optimize XR configuration for Quest 2
             const xrHelper = await scene.createDefaultXRExperienceAsync({
-                floorMeshes: [scene.getMeshByName("floor")],
+                floorMeshes: [scene.getMeshByName("mainHall_floor")],
+                uiOptions: {
+                    sessionMode: 'immersive-vr',
+                    referenceSpaceType: 'local-floor'
+                },
                 optionalFeatures: true
             });
-
+            
+            if (xrHelper && xrHelper.baseExperience) {
+                // Handle session end gracefully
+                xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+                    if (state === BABYLON.WebXRState.NOT_IN_XR) {
+                        console.log("XR session ended");
+                    }
+                });
+            }
+            
             return xrHelper;
         } catch (error) {
-            console.warn("WebXR not available:", error);
+            console.warn("WebXR initialization failed:", error);
             return null;
+        }
+    }
+    
+    cleanup() {
+        // Properly dispose all systems that have dispose methods
+        this.systems.forEach(system => {
+            if (system && typeof system.dispose === 'function') {
+                system.dispose();
+            }
+        });
+        
+        // Clear systems array
+        this.systems = [];
+        
+        // Dispose scene and engine
+        if (this.scene) {
+            this.scene.dispose();
+        }
+        
+        if (this.engine) {
+            this.engine.dispose();
         }
     }
 }
