@@ -26,24 +26,20 @@ class Game {
         scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
         try {
-            // Start with a regular camera first
+            // Basic scene setup
             const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 1.6, 0), scene);
             camera.attachControl(this.canvas, true);
-            
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
             
+            // Initialize XR first
+            const xrHelper = await this.setupVR(scene);
+            
+            // Initialize systems after XR
             this.modelBuilder = new ModelBuilder(scene);
-            this.interactionSystem = new InteractionSystem(scene);
+            this.interactionSystem = new InteractionSystem(scene, xrHelper);
             this.manannanSystem = new ManannanSystem(scene, this.modelBuilder);
             
             await RoomBuilder.createRoom(scene);
-            
-            // Setup WebXR after scene is ready
-            const xrHelper = await this.setupVR(scene);
-            if (xrHelper) {
-                // Replace default camera with XR camera when entering XR mode
-                xrHelper.baseExperience.camera.position = new BABYLON.Vector3(0, 1.6, 0);
-            }
             
             return scene;
         } catch (error) {
