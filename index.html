@@ -1,47 +1,15 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
+    <meta charset="utf-8"/>
     <title>King's Quest 3 VR</title>
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
-    <script src="js/components/movement.js"></script>
-    <script src="js/components/interaction.js"></script>
-    <script src="js/components/spell-system.js"></script>
-    <script src="js/shaders/retro-shader.js"></script>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
-  </head>
-  <body>
-    <div id="ui-overlay">
-      <div id="inventory"></div>
-      <div id="spell-menu" class="hidden"></div>
-    </div>
-    <a-scene>
-    <a-assets>
-        <img id="wood-texture" src="https://cdn.aframe.io/basic-guide/textures/wood.jpg">
-        <img id="wall-texture" src="https://cdn.aframe.io/basic-guide/textures/brick.jpg">
-    </a-assets>
-
-    <!-- Environment -->
-    <a-entity id="room">
-        <a-box class="wall" position="0 2 -4" width="8" height="4" depth="0.1" 
-               material="shader: retro; src: #wall-texture; repeat: 2 1"></a-box>
-        <a-box class="wall" position="0 2 4" width="8" height="4" depth="0.1" 
-               material="shader: retro; src: #wall-texture; repeat: 2 1"></a-box>
-        <a-box class="wall" position="-4 2 0" rotation="0 90 0" width="8" height="4" depth="0.1" 
-               material="shader: retro; src: #wall-texture; repeat: 2 1"></a-box>
-        <a-box class="wall" position="4 2 0" rotation="0 90 0" width="8" height="4" depth="0.1" 
-               material="shader: retro; src: #wall-texture; repeat: 2 1"></a-box>
-        <a-plane class="floor" rotation="-90 0 0" width="8" height="8" 
-                 material="shader: retro; src: #wood-texture; repeat: 2 2"></a-plane>
-        <a-plane class="ceiling" position="0 4 0" rotation="90 0 0" width="8" height="8" 
-                 material="src: #wood-texture; repeat: 4 4; shader: flat; npot: true"></a-plane>
-        
-        <!-- Interactive Objects -->
-        <a-box class="interactive" id="spell-book" position="-2 1 -2" scale="0.3 0.4 0.1" color="#8b4513" 
-               interaction="type: book"></a-box>
-        <a-box class="interactive" id="wand" position="2 1 -2" scale="0.1 0.4 0.1" color="#daa520"
-               interaction="type: wand"></a-box>
-      </a-entity>
-    </a-scene>
-  </body>
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <script src="js/game.js" type="module"></script>
+</body>
 </html>

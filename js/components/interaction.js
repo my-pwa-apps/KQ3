@@ -1,51 +1,38 @@
 AFRAME.registerComponent('interaction', {
-    schema: {
-        type: { type: 'string', default: 'generic' }
-    },
-
-    init: function() {
-        this.el.addEventListener('click', this.onClick.bind(this));
-        this.el.addEventListener('mouseenter', () => {
-            this.el.setAttribute('color', '#ff0');
-        });
-        this.el.addEventListener('mouseleave', () => {
-            this.el.setAttribute('color', this.originalColor);
-        });
-        this.originalColor = this.el.getAttribute('color');
-    },
+    // ...existing code...
 
     onClick: function() {
-        switch(this.data.type) {
-            case 'book':
-                this.toggleSpellMenu();
+        const position = this.el.getAttribute('position');
+        const id = this.el.id;
+
+        switch(id) {
+            case 'dining-table':
+                this.showMessage("A heavy wooden dining table.");
                 break;
-            case 'wand':
-                this.addToInventory('wand');
+            case 'kitchen-area':
+                this.showMessage("The kitchen area where meals are prepared.");
+                break;
+            case 'stairs':
+                this.teleportToSecondFloor();
                 break;
         }
     },
 
-    toggleSpellMenu: function() {
-        const spellMenu = document.getElementById('spell-menu');
-        spellMenu.classList.toggle('hidden');
-        if (!spellMenu.classList.contains('hidden')) {
-            spellMenu.innerHTML = `
-                <h2>Spells</h2>
-                <ul>
-                    <li>Transform Self</li>
-                    <li>Teleport</li>
-                    <li>Brew Storm</li>
-                </ul>
-            `;
-        }
+    showMessage: function(text) {
+        const messageEl = document.getElementById('message-overlay') || this.createMessageOverlay();
+        messageEl.innerHTML = text;
+        setTimeout(() => messageEl.innerHTML = '', 3000);
     },
 
-    addToInventory: function(item) {
-        const inventory = document.getElementById('inventory');
-        const itemEl = document.createElement('div');
-        itemEl.className = 'inventory-item';
-        itemEl.setAttribute('data-item', item);
-        inventory.appendChild(itemEl);
-        this.el.parentNode.removeChild(this.el);
+    createMessageOverlay: function() {
+        const overlay = document.createElement('div');
+        overlay.id = 'message-overlay';
+        document.body.appendChild(overlay);
+        return overlay;
+    },
+
+    teleportToSecondFloor: function() {
+        // To be implemented when second floor is added
+        this.showMessage("The stairs lead to the second floor.");
     }
 });
