@@ -1,17 +1,12 @@
 export class InteractionSystem {
     constructor(scene, xrHelper) {
         this.scene = scene;
-        this.xrHelper = xrHelper;
-        this.setupInteractions();
-    }
-
-    setupInteractions() {
-        // Always setup mouse/touch interactions
         this.setupMouseInteraction();
         
-        // Setup VR interactions only if XR is available
-        if (this.xrHelper) {
-            this.setupVRInteraction();
+        if (xrHelper) {
+            xrHelper.baseExperience.sessionManager.onXRSessionInit.add(() => {
+                this.setupVRInteraction(xrHelper);
+            });
         }
     }
 
@@ -26,20 +21,30 @@ export class InteractionSystem {
         };
     }
 
-    setupVRInteraction() {
-        if (!this.xrHelper || !this.xrHelper.baseExperience) return;
+    setupVRInteraction(xrHelper) {
+        if (!xrHelper || !xrHelper.input) return;
 
-        this.xrHelper.baseExperience.onControllerAddedObservable.add((controller) => {
-            controller.onTriggerStateChangedObservable.add((state) => {
-                if (state.pressed) {
-                    const ray = controller.getWorldPointerRayToRef();
-                    const pickInfo = this.scene.pickWithRay(ray);
-                    if (pickInfo.hit) {
-                        this.handleInteraction(pickInfo.pickedPoint);
+        xrHelper.input.onControllerAddedObservable.add((controller) => {
+            if (controller.onTriggerStateChangedObservable) {
+                controller.onTriggerStateChangedObservable.add((state) => {
+                    if (state.pressed) {
+                        this.handleVRInteraction(controller);
                     }
-                }
-            });
+                });
+            }
         });
+    }
+
+    handleVRInteraction(controller) {
+        if (!controller) return;
+        
+        const ray = new BABYLON.Ray();
+        controller.getWorldPointerRayToRef(ray);
+        
+        const pickInfo = this.scene.pickWithRay(ray);
+        if (pickInfo.hit) {
+            this.handleInteraction(pickInfo.pickedPoint);
+        }
     }
 
     handleInteraction(position) {
