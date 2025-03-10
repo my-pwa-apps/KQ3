@@ -143,6 +143,73 @@ export class ModelBuilder {
         return cat;
     }
     
+    createWizard() {
+        const cacheKey = 'wizard';
+        if (this.cache.has(cacheKey)) {
+            return this.cache.get(cacheKey).clone('wizard_instance');
+        }
+
+        const wizard = new BABYLON.TransformNode("wizard", this.scene);
+        
+        // Robe
+        const robe = BABYLON.MeshBuilder.CreateCylinder("robe", {
+            height: 1.8,
+            diameter: 0.8,
+            tessellation: 12
+        }, this.scene);
+        robe.material = this.createMaterial("#321853");
+        robe.parent = wizard;
+        
+        // Head
+        const head = BABYLON.MeshBuilder.CreateSphere("head", {
+            diameter: 0.4,
+            segments: 16
+        }, this.scene);
+        head.position.y = 1.0;
+        head.position.z = 0.1;
+        head.material = this.createMaterial("#FFE0BD");
+        head.parent = wizard;
+        
+        // Beard
+        const beard = BABYLON.MeshBuilder.CreateCylinder("beard", {
+            height: 0.4,
+            diameterTop: 0.1,
+            diameterBottom: 0.3,
+            tessellation: 12
+        }, this.scene);
+        beard.position.y = 0.7;
+        beard.position.z = 0.15;
+        beard.rotation.x = Math.PI / 10;
+        beard.material = this.createMaterial("#CCCCCC");
+        beard.parent = wizard;
+        
+        // Staff
+        const staff = BABYLON.MeshBuilder.CreateCylinder("staff", {
+            height: 1.8,
+            diameter: 0.06,
+            tessellation: 8
+        }, this.scene);
+        staff.position.x = 0.3;
+        staff.position.y = 0;
+        staff.material = this.createMaterial("#8B4513");
+        staff.parent = wizard;
+        
+        // Staff orb
+        const orb = BABYLON.MeshBuilder.CreateSphere("staffOrb", {
+            diameter: 0.12,
+            segments: 12
+        }, this.scene);
+        orb.position.x = 0.3;
+        orb.position.y = 0.9;
+        orb.material = this.createMaterial("#4A90E2");
+        orb.parent = wizard;
+        
+        wizard.position.y = 0;
+        
+        this.cache.set(cacheKey, wizard);
+        return wizard;
+    }
+    
     setupPickableInteraction(mesh, item, type) {
         const highlightMaterial = this.createMaterial("#FFFF00", 0.4);
         const originalMaterial = mesh.material;
