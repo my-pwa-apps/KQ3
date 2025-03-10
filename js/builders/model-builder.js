@@ -81,6 +81,68 @@ export class ModelBuilder {
         return item;
     }
     
+    createCat() {
+        const cacheKey = 'cat';
+        if (this.cache.has(cacheKey)) {
+            return this.cache.get(cacheKey).clone('cat_instance');
+        }
+
+        const cat = new BABYLON.TransformNode("cat", this.scene);
+        
+        // Cat body
+        const body = BABYLON.MeshBuilder.CreateSphere("cat_body", {
+            diameterX: 0.5, 
+            diameterY: 0.35, 
+            diameterZ: 0.8
+        }, this.scene);
+        body.material = this.createMaterial("#5E5E5E");
+        body.parent = cat;
+        
+        // Cat head
+        const head = BABYLON.MeshBuilder.CreateSphere("cat_head", {
+            diameter: 0.3
+        }, this.scene);
+        head.position = new BABYLON.Vector3(0, 0.1, 0.4);
+        head.material = this.createMaterial("#5E5E5E");
+        head.parent = cat;
+        
+        // Cat ears
+        const earLeft = BABYLON.MeshBuilder.CreateCylinder("cat_ear_left", {
+            height: 0.15,
+            diameterTop: 0,
+            diameterBottom: 0.1
+        }, this.scene);
+        earLeft.position = new BABYLON.Vector3(0.1, 0.25, 0.4);
+        earLeft.material = this.createMaterial("#5E5E5E");
+        earLeft.parent = cat;
+        
+        const earRight = BABYLON.MeshBuilder.CreateCylinder("cat_ear_right", {
+            height: 0.15,
+            diameterTop: 0,
+            diameterBottom: 0.1
+        }, this.scene);
+        earRight.position = new BABYLON.Vector3(-0.1, 0.25, 0.4);
+        earRight.material = this.createMaterial("#5E5E5E");
+        earRight.parent = cat;
+        
+        // Cat tail
+        const tail = BABYLON.MeshBuilder.CreateCylinder("cat_tail", {
+            height: 0.5,
+            diameterTop: 0.03,
+            diameterBottom: 0.06
+        }, this.scene);
+        tail.position = new BABYLON.Vector3(0, 0.15, -0.4);
+        tail.rotation.x = Math.PI / 2;
+        tail.material = this.createMaterial("#5E5E5E");
+        tail.parent = cat;
+        
+        // Position cat to stand on the floor
+        cat.position.y = 0.2;
+        
+        this.cache.set(cacheKey, cat);
+        return cat;
+    }
+    
     setupPickableInteraction(mesh, item, type) {
         const highlightMaterial = this.createMaterial("#FFFF00", 0.4);
         const originalMaterial = mesh.material;
