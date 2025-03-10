@@ -1,4 +1,4 @@
-import * as CANNON from 'cannon';
+import * as CANNON from "../../node_modules/cannon/build/cannon.js";
 window.CANNON = CANNON;
 
 import { ManannanSystem } from './systems/manannan-system.js';
