@@ -1,21 +1,15 @@
 export class RoomBuilder {
     static async createRoom(scene) {
-        // Create all rooms in the house
         const mainHall = await this.createMainHall(scene);
         const kitchen = await this.createKitchen(scene);
         const study = await this.createStudy(scene);
         const stairs = this.createStairs(scene);
-        
-        // Add doorways between rooms
         this.createDoorways(scene);
-        
-        // Create container for all rooms
         const house = new BABYLON.TransformNode("manannans-house", scene);
         mainHall.parent = house;
         kitchen.parent = house;
         study.parent = house;
         stairs.parent = house;
-        
         return house;
     }
     
@@ -24,7 +18,6 @@ export class RoomBuilder {
         const wallMat = this.createWallMaterial(scene);
         const floorMat = this.createFloorMaterial(scene);
         
-        // Create room structure
         const walls = [
             { pos: [0, 2, -5], rot: [0, 0, 0], width: 10 },
             { pos: [0, 2, 5], rot: [0, Math.PI, 0], width: 10 },
@@ -33,7 +26,7 @@ export class RoomBuilder {
         ];
         
         walls.forEach((wall, index) => {
-            if (index !== 1) { // Skip south wall (doorway to kitchen)
+            if (index !== 1) {
                 const wallMesh = BABYLON.MeshBuilder.CreateBox(`mainHall_wall${index}`, {
                     width: wall.width, height: 4, depth: 0.1,
                     updatable: false
@@ -46,7 +39,6 @@ export class RoomBuilder {
             }
         });
         
-        // Floor
         const floor = BABYLON.MeshBuilder.CreateGround("mainHall_floor", {
             width: 10, height: 10,
             updatable: false
@@ -54,7 +46,6 @@ export class RoomBuilder {
         floor.material = floorMat;
         floor.parent = mainHall;
         
-        // Add furniture
         await this.addMainHallFurniture(scene, mainHall);
         
         return mainHall;
@@ -63,20 +54,19 @@ export class RoomBuilder {
     static async createKitchen(scene) {
         const kitchen = new BABYLON.TransformNode("kitchen", scene);
         kitchen.position.z = 10;
-        
+
         const wallMat = this.createWallMaterial(scene);
         const floorMat = this.createFloorMaterial(scene);
-        
-        // Create room structure
+
         const walls = [
-            { pos: [0, 2, -5], rot: [0, 0, 0], width: 10 }, // North wall (shared with main hall)
+            { pos: [0, 2, -5], rot: [0, 0, 0], width: 10 },
             { pos: [0, 2, 5], rot: [0, Math.PI, 0], width: 10 },
             { pos: [-5, 2, 0], rot: [0, Math.PI/2, 0], width: 10 },
             { pos: [5, 2, 0], rot: [0, -Math.PI/2, 0], width: 10 }
         ];
         
         walls.forEach((wall, index) => {
-            if (index !== 0) { // Skip north wall (doorway to main hall)
+            if (index !== 0) {
                 const wallMesh = BABYLON.MeshBuilder.CreateBox(`kitchen_wall${index}`, {
                     width: wall.width, height: 4, depth: 0.1,
                     updatable: false
@@ -89,7 +79,6 @@ export class RoomBuilder {
             }
         });
         
-        // Floor
         const floor = BABYLON.MeshBuilder.CreateGround("kitchen_floor", {
             width: 10, height: 10,
             updatable: false
@@ -97,20 +86,18 @@ export class RoomBuilder {
         floor.material = floorMat;
         floor.parent = kitchen;
         
-        // Add furniture
         await this.addKitchenFurniture(scene, kitchen);
-        
+
         return kitchen;
     }
     
     static async createStudy(scene) {
         const study = new BABYLON.TransformNode("study", scene);
         study.position.x = -10;
-        
+
         const wallMat = this.createWallMaterial(scene);
         const floorMat = this.createFloorMaterial(scene);
-        
-        // Create room structure
+
         const walls = [
             { pos: [0, 2, -5], rot: [0, 0, 0], width: 10 },
             { pos: [0, 2, 5], rot: [0, Math.PI, 0], width: 10 },
@@ -119,7 +106,7 @@ export class RoomBuilder {
         ];
         
         walls.forEach((wall, index) => {
-            if (index !== 3) { // Skip east wall (doorway to main hall)
+            if (index !== 3) {
                 const wallMesh = BABYLON.MeshBuilder.CreateBox(`study_wall${index}`, {
                     width: wall.width, height: 4, depth: 0.1,
                     updatable: false
@@ -132,7 +119,6 @@ export class RoomBuilder {
             }
         });
         
-        // Floor
         const floor = BABYLON.MeshBuilder.CreateGround("study_floor", {
             width: 10, height: 10,
             updatable: false
@@ -140,9 +126,8 @@ export class RoomBuilder {
         floor.material = floorMat;
         floor.parent = study;
         
-        // Add furniture
         await this.addStudyFurniture(scene, study);
-        
+
         return study;
     }
     
@@ -150,7 +135,6 @@ export class RoomBuilder {
         const stairs = new BABYLON.TransformNode("stairs", scene);
         stairs.position = new BABYLON.Vector3(4, 0, -3);
         
-        // Create stair steps
         const stairMat = this.createMaterial(scene, "#8B4513");
         
         for (let i = 0; i < 10; i++) {
@@ -163,7 +147,6 @@ export class RoomBuilder {
             step.parent = stairs;
         }
         
-        // Add stair railings
         const railing = BABYLON.MeshBuilder.CreateCylinder("railing", {
             height: 5, diameter: 0.1
         }, scene);
@@ -176,36 +159,33 @@ export class RoomBuilder {
     }
     
     static createDoorways(scene) {
-        // Main hall to kitchen doorway
         const kitchenDoorFrame = BABYLON.MeshBuilder.CreateBox("kitchenDoorFrame", {
             width: 2, height: 3, depth: 0.2
         }, scene);
         kitchenDoorFrame.position = new BABYLON.Vector3(0, 1.5, 5);
         kitchenDoorFrame.material = this.createMaterial(scene, "#8B4513");
-        
-        // Main hall to study doorway
+
         const studyDoorFrame = BABYLON.MeshBuilder.CreateBox("studyDoorFrame", {
             width: 0.2, height: 3, depth: 2
         }, scene);
         studyDoorFrame.position = new BABYLON.Vector3(-5, 1.5, 0);
         studyDoorFrame.material = this.createMaterial(scene, "#8B4513");
     }
-    
+
     static async addMainHallFurniture(scene, parent) {
-        // Dining table
         const table = BABYLON.MeshBuilder.CreateBox("dining_table", {
             width: 3, height: 0.8, depth: 1.5
         }, scene);
         table.position = new BABYLON.Vector3(0, 0.4, 0);
         table.material = this.createMaterial(scene, "#8B4513");
+        table.checkCollisions = true;
         table.parent = parent;
-        
-        // Chairs
+
         const chairPositions = [
             [0, 0, -1], [0, 0, 1],
             [-1.5, 0, 0], [1.5, 0, 0]
         ];
-        
+
         chairPositions.forEach((pos, i) => {
             const chair = this.createChair(scene);
             chair.position = new BABYLON.Vector3(...pos);
@@ -214,191 +194,81 @@ export class RoomBuilder {
             } else {
                 chair.rotation.y = i === 2 ? Math.PI/2 : -Math.PI/2;
             }
+            chair.checkCollisions = true;
             chair.parent = parent;
         });
-        
-        // Fireplace
+
         const fireplace = this.createFireplace(scene);
         fireplace.position = new BABYLON.Vector3(0, 0, -4.5);
+        fireplace.checkCollisions = true;
         fireplace.parent = parent;
 
-
-        // Add thimble near the fireplace - classic KQ3 item
         const thimble = scene.modelBuilder.createPickableItem('thimble');
         thimble.position = new BABYLON.Vector3(0.8, 2.15, -4.3);
         thimble.parent = parent;
     }
     
     static async addKitchenFurniture(scene, parent) {
-        // Counter
         const counter = BABYLON.MeshBuilder.CreateBox("counter", {
             width: 4, height: 1, depth: 1
         }, scene);
         counter.position = new BABYLON.Vector3(-3, 0.5, -3);
         counter.material = this.createMaterial(scene, "#A0A0A0");
+        counter.checkCollisions = true;
         counter.parent = parent;
-        
-        // Shelves
+
         for (let i = 0; i < 3; i++) {
             const shelf = BABYLON.MeshBuilder.CreateBox("shelf_" + i, {
                 width: 2, height: 0.1, depth: 0.5
             }, scene);
             shelf.position = new BABYLON.Vector3(3, 1 + i * 0.8, -4.5);
             shelf.material = this.createMaterial(scene, "#8B4513");
+            shelf.checkCollisions = true;
             shelf.parent = parent;
-            
-            // Add pots on shelves
+
             for (let j = 0; j < 2; j++) {
                 const pot = this.createPot(scene, this.getRandomColor());
                 pot.position = new BABYLON.Vector3(2 - j * 1, 1.2 + i * 0.8, -4.5);
                 pot.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
+                pot.checkCollisions = true;
                 pot.parent = parent;
             }
         }
 
-        // Add pickable items
         const fishOil = scene.modelBuilder.createPickableItem('fish-oil');
         fishOil.position = new BABYLON.Vector3(-3, 1.05, -3);
         fishOil.parent = parent;
-        
+
         const mandrakeRoot = scene.modelBuilder.createPickableItem('mandrake-root');
         mandrakeRoot.position = new BABYLON.Vector3(3, 1.2, -4.3);
         mandrakeRoot.parent = parent;
     }
     
     static async addStudyFurniture(scene, parent) {
-        // Bookshelf
         const bookshelf = this.createBookshelf(scene);
         bookshelf.position = new BABYLON.Vector3(0, 0, -4.5);
+        bookshelf.checkCollisions = true;
         bookshelf.parent = parent;
         
-        // Desk
         const desk = BABYLON.MeshBuilder.CreateBox("desk", {
             width: 2, height: 0.8, depth: 1
         }, scene);
         desk.position = new BABYLON.Vector3(-3, 0.4, 0);
         desk.material = this.createMaterial(scene, "#8B4513");
+        desk.checkCollisions = true;
         desk.parent = parent;
         
-        // Chair
         const chair = this.createChair(scene);
         chair.position = new BABYLON.Vector3(-3, 0, 1);
+        chair.checkCollisions = true;
         chair.parent = parent;
         
-        // Spellbook
         const spellbook = this.createSpellbook(scene);
         spellbook.position = new BABYLON.Vector3(-3, 0.8, 0);
         spellbook.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
         spellbook.parent = parent;
 
 
-        // Add pickable items
-        const mistletoe = scene.modelBuilder.createPickableItem('mistletoe');
-        mistletoe.position = new BABYLON.Vector3(-3, 0.85, 0);
-        mistletoe.parent = parent;
-    }
-
-    static async addMainHallFurniture(scene, parent) {
-        // Dining table
-        const table = BABYLON.MeshBuilder.CreateBox("dining_table", {
-            width: 3, height: 0.8, depth: 1.5
-        }, scene);
-        table.position = new BABYLON.Vector3(0, 0.4, 0);
-        table.material = this.createMaterial(scene, "#8B4513");
-        table.parent = parent;
-        
-        // Chairs
-        const chairPositions = [
-            [0, 0, -1], [0, 0, 1],
-            [-1.5, 0, 0], [1.5, 0, 0]
-        ];
-        
-        chairPositions.forEach((pos, i) => {
-            const chair = this.createChair(scene);
-            chair.position = new BABYLON.Vector3(...pos);
-            if (i < 2) {
-                chair.rotation.y = i === 0 ? Math.PI : 0;
-            } else {
-                chair.rotation.y = i === 2 ? Math.PI/2 : -Math.PI/2;
-            }
-            chair.parent = parent;
-        });
-        
-        // Fireplace
-        const fireplace = this.createFireplace(scene);
-        fireplace.position = new BABYLON.Vector3(0, 0, -4.5);
-        fireplace.parent = parent;
-
-        // Add thimble near the fireplace - classic KQ3 item
-        const thimble = scene.modelBuilder.createPickableItem('thimble');
-        thimble.position = new BABYLON.Vector3(0.8, 2.15, -4.3);
-        thimble.parent = parent;
-    }
-    
-    static async addKitchenFurniture(scene, parent) {
-        // Counter
-        const counter = BABYLON.MeshBuilder.CreateBox("counter", {
-            width: 4, height: 1, depth: 1
-        }, scene);
-        counter.position = new BABYLON.Vector3(-3, 0.5, -3);
-        counter.material = this.createMaterial(scene, "#A0A0A0");
-        counter.parent = parent;
-        
-        // Shelves
-        for (let i = 0; i < 3; i++) {
-            const shelf = BABYLON.MeshBuilder.CreateBox("shelf_" + i, {
-                width: 2, height: 0.1, depth: 0.5
-            }, scene);
-            shelf.position = new BABYLON.Vector3(3, 1 + i * 0.8, -4.5);
-            shelf.material = this.createMaterial(scene, "#8B4513");
-            shelf.parent = parent;
-            
-            // Add pots on shelves
-            for (let j = 0; j < 2; j++) {
-                const pot = this.createPot(scene, this.getRandomColor());
-                pot.position = new BABYLON.Vector3(2 - j * 1, 1.2 + i * 0.8, -4.5);
-                pot.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
-                pot.parent = parent;
-            }
-        }
-
-        // Add pickable items
-        const fishOil = scene.modelBuilder.createPickableItem('fish-oil');
-        fishOil.position = new BABYLON.Vector3(-3, 1.05, -3);
-        fishOil.parent = parent;
-        
-        const mandrakeRoot = scene.modelBuilder.createPickableItem('mandrake-root');
-        mandrakeRoot.position = new BABYLON.Vector3(3, 1.2, -4.3);
-        mandrakeRoot.parent = parent;
-    }
-    
-    static async addStudyFurniture(scene, parent) {
-        // Bookshelf
-        const bookshelf = this.createBookshelf(scene);
-        bookshelf.position = new BABYLON.Vector3(0, 0, -4.5);
-        bookshelf.parent = parent;
-        
-        // Desk
-        const desk = BABYLON.MeshBuilder.CreateBox("desk", {
-            width: 2, height: 0.8, depth: 1
-        }, scene);
-        desk.position = new BABYLON.Vector3(-3, 0.4, 0);
-        desk.material = this.createMaterial(scene, "#8B4513");
-        desk.parent = parent;
-        
-        // Chair
-        const chair = this.createChair(scene);
-        chair.position = new BABYLON.Vector3(-3, 0, 1);
-        chair.parent = parent;
-        
-        // Spellbook
-        const spellbook = this.createSpellbook(scene);
-        spellbook.position = new BABYLON.Vector3(-3, 0.8, 0);
-        spellbook.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
-        spellbook.parent = parent;
-
-
-        // Add pickable items
         const mistletoe = scene.modelBuilder.createPickableItem('mistletoe');
         mistletoe.position = new BABYLON.Vector3(-3, 0.85, 0);
         mistletoe.parent = parent;
@@ -407,7 +277,6 @@ export class RoomBuilder {
     static createChair(scene) {
         const chair = new BABYLON.TransformNode("chair", scene);
         
-        // Seat
         const seat = BABYLON.MeshBuilder.CreateBox("chair_seat", {
             width: 0.6, height: 0.1, depth: 0.6
         }, scene);
@@ -415,7 +284,6 @@ export class RoomBuilder {
         seat.material = this.createMaterial(scene, "#8B4513");
         seat.parent = chair;
         
-        // Back
         const back = BABYLON.MeshBuilder.CreateBox("chair_back", {
             width: 0.6, height: 0.8, depth: 0.1
         }, scene);
@@ -424,7 +292,6 @@ export class RoomBuilder {
         back.material = this.createMaterial(scene, "#8B4513");
         back.parent = chair;
         
-        // Legs
         const legPositions = [
             [0.25, 0.2, 0.25], [0.25, 0.2, -0.25],
             [-0.25, 0.2, 0.25], [-0.25, 0.2, -0.25]
@@ -445,7 +312,6 @@ export class RoomBuilder {
     static createFireplace(scene) {
         const fireplace = new BABYLON.TransformNode("fireplace", scene);
         
-        // Main structure
         const main = BABYLON.MeshBuilder.CreateBox("fireplace_main", {
             width: 3, height: 2, depth: 0.5
         }, scene);
@@ -453,7 +319,6 @@ export class RoomBuilder {
         main.material = this.createMaterial(scene, "#808080");
         main.parent = fireplace;
         
-        // Opening
         const opening = BABYLON.MeshBuilder.CreateBox("fireplace_opening", {
             width: 2, height: 1.5, depth: 0.6
         }, scene);
@@ -462,7 +327,6 @@ export class RoomBuilder {
         opening.material = this.createMaterial(scene, "#000000");
         opening.parent = fireplace;
         
-        // Mantle
         const mantle = BABYLON.MeshBuilder.CreateBox("fireplace_mantle", {
             width: 3.5, height: 0.2, depth: 0.7
         }, scene);
@@ -470,7 +334,6 @@ export class RoomBuilder {
         mantle.material = this.createMaterial(scene, "#8B4513");
         mantle.parent = fireplace;
         
-        // Fire effect (red/orange box)
         const fire = BABYLON.MeshBuilder.CreateBox("fire", {
             width: 1.8, height: 0.6, depth: 0.1
         }, scene);
@@ -488,7 +351,6 @@ export class RoomBuilder {
     static createBookshelf(scene) {
         const bookshelf = new BABYLON.TransformNode("bookshelf", scene);
         
-        // Main structure
         const main = BABYLON.MeshBuilder.CreateBox("shelf_main", {
             width: 3, height: 2.5, depth: 0.5
         }, scene);
@@ -496,7 +358,6 @@ export class RoomBuilder {
         main.material = this.createMaterial(scene, "#8B4513");
         main.parent = bookshelf;
         
-        // Shelves
         for (let i = 0; i < 3; i++) {
             const shelf = BABYLON.MeshBuilder.CreateBox("shelf_" + i, {
                 width: 2.8, height: 0.05, depth: 0.4
@@ -504,8 +365,7 @@ export class RoomBuilder {
             shelf.position.y = 0.5 + i * 0.8;
             shelf.material = this.createMaterial(scene, "#8B4513");
             shelf.parent = bookshelf;
-            
-            // Add books on each shelf
+
             for (let j = 0; j < 4; j++) {
                 const book = this.createBook(scene, this.getRandomColor());
                 book.position.x = -1.2 + j * 0.6;
@@ -528,14 +388,12 @@ export class RoomBuilder {
     static createPot(scene, color) {
         const pot = new BABYLON.TransformNode("pot", scene);
         
-        // Base
         const base = BABYLON.MeshBuilder.CreateCylinder("pot_base", {
             height: 0.3, diameterTop: 0.2, diameterBottom: 0.15
         }, scene);
         base.material = this.createMaterial(scene, color);
         base.parent = pot;
         
-        // Lid
         const lid = BABYLON.MeshBuilder.CreateCylinder("pot_lid", {
             height: 0.05, diameterTop: 0.15, diameterBottom: 0.22
         }, scene);
@@ -543,7 +401,6 @@ export class RoomBuilder {
         lid.material = this.createMaterial(scene, color);
         lid.parent = pot;
         
-        // Handle
         const handle = BABYLON.MeshBuilder.CreateCylinder("pot_handle", {
             height: 0.1, diameter: 0.02
         }, scene);
@@ -563,7 +420,6 @@ export class RoomBuilder {
         mat.diffuseColor = new BABYLON.Color3(0.5, 0, 0.5);
         spellbook.material = mat;
         
-        // Make spellbook interactive
         spellbook.isPickable = true;
         spellbook.actionManager = new BABYLON.ActionManager(scene);
         spellbook.actionManager.registerAction(

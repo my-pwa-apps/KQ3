@@ -48,37 +48,27 @@ class Game {
         // Camera and basic scene setup
         const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 1.6, 0), scene);
         camera.attachControl(this.canvas, true);
-        camera.speed = 0.15;
-        camera.keysUp    = [87,38];
-        camera.keysDown  = [83,40];
-        camera.keysLeft  = [65,37];
-        camera.keysRight = [68,39];
+        camera.speed = 0.05; // Reduced speed for better control
+        camera.keysUp = [87, 38];
+        camera.keysDown = [83, 40];
+        camera.keysLeft = [65, 37];
+        camera.keysRight = [68, 39];
         camera.checkCollisions = true;
+        camera.applyGravity = true;
         camera.ellipsoid = new BABYLON.Vector3(0.5, 0.9, 0.5);
-        
         scene.collisionsEnabled = true;
         scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
-        
-        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0,1,0), scene);
-        
-        // Initialize WebXR first
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
         const xrHelper = await this.setupVR(scene);
-        
-        // Initialize ModelBuilder and attach to scene for global access
         this.modelBuilder = new ModelBuilder(scene);
         scene.modelBuilder = this.modelBuilder;
-        
-        // Create rooms and systems
         await RoomBuilder.createRoom(scene);
-        
-        // Add systems and store references for cleanup
         this.addSystem(new InteractionSystem(scene, xrHelper));
         this.addSystem(new InventorySystem(scene));
         this.addSystem(new CatSystem(scene, this.modelBuilder));
         this.addSystem(new NavigationSystem(scene, camera));
         this.addSystem(new VRMovementSystem(scene, xrHelper));
         this.addSystem(new ManannanSystem(scene, this.modelBuilder));
-            
         return scene;
     }
     
