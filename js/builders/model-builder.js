@@ -54,7 +54,8 @@ export class ModelBuilder {
             case 'mistletoe':
                 mesh = BABYLON.MeshBuilder.CreateTorus(`mesh_${type}`, {
                     diameter: 0.15,
-                    thickness: 0.03
+                    thickness: 0.03,
+                    tessellation: 16
                 }, this.scene);
                 mesh.material = this.createMaterial("#228B22");
                 break;
@@ -73,24 +74,18 @@ export class ModelBuilder {
             mesh.isPickable = true;
             mesh.metadata = { type, isPickable: true };
             
-            // Setup optimized interaction highlighting
             this.setupPickableInteraction(mesh, item, type);
         }
         
-        // Cache the template for future reuse
         this.cache.set(cacheKey, item);
         return item;
     }
     
     setupPickableInteraction(mesh, item, type) {
-        // Get or create highlight material
         const highlightMaterial = this.createMaterial("#FFFF00", 0.4);
-        
-        // Store original material reference
         const originalMaterial = mesh.material;
         mesh._customOriginalMaterial = originalMaterial;
         
-        // Use action manager with optimized triggers
         if (!mesh.actionManager) {
             mesh.actionManager = new BABYLON.ActionManager(this.scene);
         }
@@ -113,7 +108,6 @@ export class ModelBuilder {
             new BABYLON.ExecuteCodeAction(
                 BABYLON.ActionManager.OnPickTrigger, 
                 () => {
-                    // Direct event dispatch for better performance
                     document.dispatchEvent(new CustomEvent('itemPicked', { 
                         detail: { itemType: type, mesh: item } 
                     }));
@@ -123,21 +117,40 @@ export class ModelBuilder {
     }
     
     createOptimizedCylinder(name, options, colorHex) {
-        // Create optimized cylinder with performance settings
         const cylinder = BABYLON.MeshBuilder.CreateCylinder(name, {
             ...options,
-            tessellation: 12, // Reduced for better performance
+            tessellation: 12,
             updatable: false
         }, this.scene);
         
         cylinder.material = this.createMaterial(colorHex);
-        cylinder.freezeWorldMatrix(); // Performance optimization
-        
         return cylinder;
     }
     
+    createPotion(color) {
+        const bottle = BABYLON.MeshBuilder.CreateCylinder("potion", {
+            height: 0.2,
+            diameterTop: 0.04,
+            diameterBottom: 0.06,
+            tessellation: 12
+        }, this.scene);
+        
+        bottle.material = this.createMaterial("#D3D3D3", 0.7);
+        
+        const liquid = BABYLON.MeshBuilder.CreateCylinder("liquid", {
+            height: 0.14,
+            diameterTop: 0.03,
+            diameterBottom: 0.05,
+            tessellation: 12
+        }, this.scene);
+        liquid.position.y = -0.02;
+        liquid.material = this.createMaterial(color);
+        liquid.parent = bottle;
+        
+        return bottle;
+    }
+    
     createMaterial(colorHex, alpha = 1.0) {
-        // Cache materials by color and alpha
         const cacheKey = `${colorHex}_${alpha}`;
         if (this.materialCache.has(cacheKey)) {
             return this.materialCache.get(cacheKey);
@@ -150,33 +163,7 @@ export class ModelBuilder {
             mat.alpha = alpha;
         }
         
-        // Performance optimizations
-        mat.freeze(); // Prevents material updates for static objects
         this.materialCache.set(cacheKey, mat);
-        
         return mat;
-    }
-    
-    createPotion(color) {
-        // Create bottle shape
-        const bottle = BABYLON.MeshBuilder.CreateCylinder("potion", {
-            height: 0.2,
-            diameterTop: 0.04,
-            diameterBottom: 0.06
-        }, this.scene);
-        bottle.material = this.createMaterial("#D3D3D3");
-        bottle.material.alpha = 0.7;
-        
-        // Create liquid inside
-        const liquid = BABYLON.MeshBuilder.CreateCylinder("liquid", {
-            height: 0.14,
-            diameterTop: 0.03,
-            diameterBottom: 0.05
-        }, this.scene);
-        liquid.position.y = -0.02;
-        liquid.material = this.createMaterial(color);
-        liquid.parent = bottle;
-        
-        return bottle;
     }
 }

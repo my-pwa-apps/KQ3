@@ -44,7 +44,6 @@ class Game {
     async createScene() {
         const scene = new BABYLON.Scene(this.engine);
         scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
-        scene.useRightHandedSystem = true; // Helps with VR consistency
 
         try {
             // Camera and basic scene setup
@@ -66,9 +65,9 @@ class Game {
             // Initialize WebXR first
             const xrHelper = await this.setupVR(scene);
             
-            // Initialize systems in correct order
+            // Initialize ModelBuilder and explicitly attach to scene
             this.modelBuilder = new ModelBuilder(scene);
-            scene.modelBuilder = this.modelBuilder;
+            scene.modelBuilder = this.modelBuilder; // Make sure this property is set
             
             // Create rooms with optimized mesh instances
             const house = await RoomBuilder.createRoom(scene);
