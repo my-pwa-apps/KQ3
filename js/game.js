@@ -6,6 +6,7 @@ import { NavigationSystem } from './systems/navigation-system.js';
 import { InventorySystem } from './systems/inventory-system.js';
 import { CatSystem } from './systems/cat-system.js';
 import { VRMovementSystem } from './systems/vr-movement-system.js';
+import { ItemBuilder } from './builders/item-builder.js';
 
 class Game {
     constructor() {
@@ -43,32 +44,53 @@ class Game {
 
     async createScene() {
         const scene = new BABYLON.Scene(this.engine);
-        scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
-
+        
+        // Enable physics with optimized settings
+        const gravityVector = new BABYLON.Vector3(0, -9.81, 0);
+        const physicsPlugin = new BABYLON.CannonJSPlugin(true, 10);
+        scene.enablePhysics(gravityVector, physicsPlugin);
+        
+        // Optimize physics simulation
+        scene.getPhysicsEngine().setTimeStep(1/60);
+        
         // Camera and basic scene setup
         const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 1.6, 0), scene);
         camera.attachControl(this.canvas, true);
-        camera.speed = 0.05; // Reduced speed for better control
-        camera.keysUp = [87, 38];
-        camera.keysDown = [83, 40];
-        camera.keysLeft = [65, 37];
-        camera.keysRight = [68, 39];
+        camera.speed = 0.15;
+        camera.keysUp    = [87,38];
+        camera.keysDown  = [83,40];
+        camera.keysLeft  = [65,37];
+        camera.keysRight = [68,39];
         camera.checkCollisions = true;
-        camera.applyGravity = true;
         camera.ellipsoid = new BABYLON.Vector3(0.5, 0.9, 0.5);
+        
         scene.collisionsEnabled = true;
         scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
-        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+        
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0,1,0), scene);
+        
+        // Initialize WebXR first
         const xrHelper = await this.setupVR(scene);
+        
+        // Initialize ModelBuilder and attach to scene for global access
         this.modelBuilder = new ModelBuilder(scene);
         scene.modelBuilder = this.modelBuilder;
+        
+        // Add item builder
+        this.itemBuilder = new ItemBuilder(scene);
+        scene.itemBuilder = this.itemBuilder;
+
+        // Create rooms and systems
         await RoomBuilder.createRoom(scene);
+        
+        // Add systems and store references for cleanup
         this.addSystem(new InteractionSystem(scene, xrHelper));
         this.addSystem(new InventorySystem(scene));
         this.addSystem(new CatSystem(scene, this.modelBuilder));
         this.addSystem(new NavigationSystem(scene, camera));
         this.addSystem(new VRMovementSystem(scene, xrHelper));
         this.addSystem(new ManannanSystem(scene, this.modelBuilder));
+            
         return scene;
     }
     

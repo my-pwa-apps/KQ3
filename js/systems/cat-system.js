@@ -34,7 +34,11 @@ export class CatSystem {
             const angle = Math.atan2(direction.x, direction.z);
             this.cat.rotation.y = angle;
             const alpha = this.walkingSpeed;
-            this.cat.position = BABYLON.Vector3.Lerp(currentPosition, targetPosition, alpha);
+            this.cat.position = BABYLON.Vector3.Lerp(
+                currentPosition,
+                targetPosition,
+                alpha
+            );
             if (currentPosition.subtract(targetPosition).length() < 0.1) {
                 this.isMoving = false;
             }
