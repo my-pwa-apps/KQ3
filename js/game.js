@@ -45,52 +45,45 @@ class Game {
         const scene = new BABYLON.Scene(this.engine);
         scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
-        try {
-            // Camera and basic scene setup
-            const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 1.6, 0), scene);
-            camera.attachControl(this.canvas, true);
-            camera.speed = 0.15;
-            camera.keysUp = [87, 38];
-            camera.keysDown = [83, 40];
-            camera.keysLeft = [65, 37];
-            camera.keysRight = [68, 39];
-            camera.checkCollisions = true;
-            camera.ellipsoid = new BABYLON.Vector3(0.5, 0.9, 0.5);
+        // Camera and basic scene setup
+        const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 1.6, 0), scene);
+        camera.attachControl(this.canvas, true);
+        camera.speed = 0.15;
+        camera.keysUp    = [87,38];
+        camera.keysDown  = [83,40];
+        camera.keysLeft  = [65,37];
+        camera.keysRight = [68,39];
+        camera.checkCollisions = true;
+        camera.ellipsoid = new BABYLON.Vector3(0.5, 0.9, 0.5);
+        
+        scene.collisionsEnabled = true;
+        scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
+        
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0,1,0), scene);
+        
+        // Initialize WebXR first
+        const xrHelper = await this.setupVR(scene);
+        
+        // Initialize ModelBuilder and attach to scene for global access
+        this.modelBuilder = new ModelBuilder(scene);
+        scene.modelBuilder = this.modelBuilder;
+        
+        // Create rooms and systems
+        await RoomBuilder.createRoom(scene);
+        
+        // Add systems and store references for cleanup
+        this.addSystem(new InteractionSystem(scene, xrHelper));
+        this.addSystem(new InventorySystem(scene));
+        this.addSystem(new CatSystem(scene, this.modelBuilder));
+        this.addSystem(new NavigationSystem(scene, camera));
+        this.addSystem(new VRMovementSystem(scene, xrHelper));
+        this.addSystem(new ManannanSystem(scene, this.modelBuilder));
             
-            scene.collisionsEnabled = true;
-            scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
-            
-            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-            
-            // Initialize WebXR first
-            const xrHelper = await this.setupVR(scene);
-            
-            // Initialize ModelBuilder and explicitly attach to scene
-            this.modelBuilder = new ModelBuilder(scene);
-            scene.modelBuilder = this.modelBuilder; // Make sure this property is set
-            
-            // Create rooms with optimized mesh instances
-            const house = await RoomBuilder.createRoom(scene);
-            
-            // Add systems and store references for cleanup
-            this.addSystem(new InteractionSystem(scene, xrHelper));
-            this.addSystem(new InventorySystem(scene));
-            this.addSystem(new CatSystem(scene, this.modelBuilder));
-            this.addSystem(new NavigationSystem(scene, camera));
-            this.addSystem(new VRMovementSystem(scene, xrHelper));
-            this.addSystem(new ManannanSystem(scene, this.modelBuilder));
-            
-            return scene;
-        } catch (error) {
-            console.error("Failed to create scene:", error);
-            throw error;
-        }
+        return scene;
     }
     
     addSystem(system) {
-        if (system) {
-            this.systems.push(system);
-        }
+        if(system) { this.systems.push(system); }
     }
 
     async setupVR(scene) {
@@ -98,24 +91,21 @@ class Game {
             // Optimize XR configuration for Quest 2
             const xrHelper = await scene.createDefaultXRExperienceAsync({
                 floorMeshes: [scene.getMeshByName("mainHall_floor")],
-                uiOptions: {
-                    sessionMode: 'immersive-vr',
-                    referenceSpaceType: 'local-floor'
-                },
+                uiOptions: { sessionMode: 'immersive-vr', referenceSpaceType: 'local-floor' },
                 optionalFeatures: true
             });
             
-            if (xrHelper && xrHelper.baseExperience) {
+            if(xrHelper && xrHelper.baseExperience) {
                 // Handle session end gracefully
                 xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-                    if (state === BABYLON.WebXRState.NOT_IN_XR) {
+                    if(state === BABYLON.WebXRState.NOT_IN_XR){
                         console.log("XR session ended");
                     }
                 });
             }
             
             return xrHelper;
-        } catch (error) {
+        } catch(error) {
             console.warn("WebXR initialization failed:", error);
             return null;
         }
@@ -123,24 +113,15 @@ class Game {
     
     cleanup() {
         // Properly dispose all systems that have dispose methods
-        this.systems.forEach(system => {
-            if (system && typeof system.dispose === 'function') {
-                system.dispose();
-            }
-        });
+        this.systems.forEach(system => { if(system && typeof system.dispose === 'function') system.dispose(); });
         
         // Clear systems array
         this.systems = [];
         
         // Dispose scene and engine
-        if (this.scene) {
-            this.scene.dispose();
-        }
-        
-        if (this.engine) {
-            this.engine.dispose();
-        }
+        if(this.scene) this.scene.dispose();
+        if(this.engine) this.engine.dispose();
     }
 }
 
-window.addEventListener('DOMContentLoaded', () => new Game());
+window.addEventListener('DOMContentLoaded', ()=> new Game());

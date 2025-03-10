@@ -10,19 +10,41 @@ export class CatSystem {
     }
     
     setupCat() {
-        // Create cat mesh
         this.cat = this.modelBuilder.createCat();
         this.cat.position = new BABYLON.Vector3(2, 0, 2);
-        
-        // Add animation to cat
-        this.walkAnimation = new BABYLON.Animation(
-            "catWalk", "position", 30,
-            BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-            BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-        );
-        
-        // Set initial position
-        this.moveCatToWaypoint(this.currentWaypoint);
+        this.walkingSpeed = 0.05;
+        this.walkingHeight = 0.03;
+        this.walkCycle = 0;
+        this.isMoving = false;
+        this.scene.registerBeforeRender(() => this.updateCatAnimation());
+    }
+    updateCatAnimation() {
+        if (!this.isMoving) return;
+        this.walkCycle += 0.1;
+        const heightOffset = Math.abs(Math.sin(this.walkCycle)) * this.walkingHeight;
+        this.cat.position.y = 0.2 + heightOffset;
+        this.cat.rotation.z = Math.sin(this.walkCycle) * 0.05;
+    }
+    moveCatToWaypoint(waypointIndex) {
+        const targetPosition = this.waypoints[waypointIndex];
+        const currentPosition = this.cat.position;
+        const direction = targetPosition.subtract(currentPosition);
+        if (direction.length() > 0.1) {
+            this.isMoving = true;
+            const angle = Math.atan2(direction.x, direction.z);
+            this.cat.rotation.y = angle;
+            const alpha = this.walkingSpeed;
+            this.cat.position = BABYLON.Vector3.Lerp(
+                currentPosition,
+                targetPosition,
+                alpha
+            );
+            if (currentPosition.subtract(targetPosition).length() < 0.1) {
+                this.isMoving = false;
+            }
+        } else {
+            this.isMoving = false;
+        }
     }
     
     createWaypoints() {
@@ -57,35 +79,6 @@ export class CatSystem {
                 this.catMeow();
             }
         }, 8000); // Change behavior every 8 seconds
-    }
-    
-    moveCatToWaypoint(waypointIndex) {
-        const targetPosition = this.waypoints[waypointIndex];
-        
-        // Create animation keys
-        const keys = [];
-        keys.push({
-            frame: 0,
-            value: this.cat.position.clone()
-        });
-        
-        keys.push({
-            frame: 60,
-            value: targetPosition.clone()
-        });
-        
-        this.walkAnimation.setKeys(keys);
-        this.cat.animations = [this.walkAnimation];
-        
-        // Calculate rotation to face movement direction
-        const direction = targetPosition.subtract(this.cat.position);
-        if (direction.length() > 0.1) {
-            const angle = Math.atan2(direction.x, direction.z);
-            this.cat.rotation.y = angle;
-        }
-        
-        // Start animation
-        this.scene.beginAnimation(this.cat, 0, 60, false);
     }
     
     catSitAndGroom() {
