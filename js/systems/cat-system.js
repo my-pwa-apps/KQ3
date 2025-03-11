@@ -4,43 +4,82 @@ export class CatSystem {
         this.modelBuilder = modelBuilder;
         this.waypoints = this.createWaypoints();
         this.currentWaypoint = 0;
+        this.isMoving = false;
+        this.walkCycle = 0;
+        this.walkingSpeed = 0.005; // Slower for smoother movement
+        this.walkingHeight = 0.03;
+        this.updateObserver = null;
         
         this.setupCat();
-        this.startCatBehavior();
+    }
+    
+    dispose() {
+        if (this.updateObserver) {
+            this.scene.onBeforeRenderObservable.remove(this.updateObserver);
+            this.updateObserver = null;
+        }
     }
     
     setupCat() {
-        this.cat = this.modelBuilder.createCat();
-        this.cat.position = new BABYLON.Vector3(2, 0, 2);
-        this.walkingSpeed = 0.05;
-        this.walkingHeight = 0.03;
-        this.walkCycle = 0;
-        this.isMoving = false;
-        this.scene.registerBeforeRender(() => this.updateCatAnimation());
+        try {
+            this.cat = this.modelBuilder.createCat();
+            this.cat.position = new BABYLON.Vector3(2, 0.2, 2);
+            
+            // Register animation update
+            this.updateObserver = this.scene.onBeforeRenderObservable.add(() => {
+                this.updateCatAnimation();
+            });
+            
+            // Start cat behavior cycle
+            this.startCatBehavior();
+        } catch (error) {
+            console.error("Failed to setup cat:", error);
+        }
     }
+    
     updateCatAnimation() {
-        if (!this.isMoving) return;
-        this.walkCycle += 0.1;
+        if (!this.isMoving || !this.cat) return;
+        
+        // Animate walking cycle with walk bounce
+        this.walkCycle += 0.05;
         const heightOffset = Math.abs(Math.sin(this.walkCycle)) * this.walkingHeight;
         this.cat.position.y = 0.2 + heightOffset;
+        
+        // Subtle head bob for more natural movement
         this.cat.rotation.z = Math.sin(this.walkCycle) * 0.05;
     }
+    
     moveCatToWaypoint(waypointIndex) {
+        if (!this.cat || !this.waypoints || waypointIndex >= this.waypoints.length) return;
+        
         const targetPosition = this.waypoints[waypointIndex];
-        const currentPosition = this.cat.position;
+        const currentPosition = this.cat.position.clone();
+        currentPosition.y = 0.2; // Base height without bounce
+        
+        // Get direction to target
         const direction = targetPosition.subtract(currentPosition);
-        if (direction.length() > 0.1) {
+        const distance = direction.length();
+        
+        if (distance > 0.1) {
             this.isMoving = true;
+            
+            // Calculate natural movement with proper rotation
             const angle = Math.atan2(direction.x, direction.z);
             this.cat.rotation.y = angle;
-            const alpha = this.walkingSpeed;
-            this.cat.position = BABYLON.Vector3.Lerp(
-                currentPosition,
-                targetPosition,
-                alpha
-            );
-            if (currentPosition.subtract(targetPosition).length() < 0.1) {
+            
+            // Use lerp for smooth movement
+            const moveSpeed = Math.min(this.walkingSpeed * (60 / this.scene.getEngine().getFps()), 0.01);
+            const newPosition = BABYLON.Vector3.Lerp(currentPosition, targetPosition, moveSpeed);
+            
+            // Keep Y position handled by animation
+            newPosition.y = this.cat.position.y;
+            this.cat.position = newPosition;
+            
+            // Check if we've arrived at target
+            if (currentPosition.subtract(targetPosition).length() < 0.2) {
+                this.currentWaypoint = (this.currentWaypoint + 1) % this.waypoints.length;
                 this.isMoving = false;
+                this.catSitAndGroom();
             }
         } else {
             this.isMoving = false;

@@ -45,54 +45,55 @@ class Game {
     async createScene() {
         const scene = new BABYLON.Scene(this.engine);
         scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
-        
-        // REMOVE PHYSICS INITIALIZATION
-        // const gravityVector = new BABYLON.Vector3(0, -9.81, 0);
-        // const physicsPlugin = new BABYLON.CannonJSPlugin(true, 10);
-        // scene.enablePhysics(gravityVector, physicsPlugin);
-        
-        const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 1.6, 0), scene);
-        camera.attachControl(this.canvas, true);
-        camera.speed = 0.15;
-        camera.keysUp    = [87,38];
-        camera.keysDown  = [83,40];
-        camera.keysLeft  = [65,37];
-        camera.keysRight = [68,39];
-        camera.checkCollisions = true;
-        camera.ellipsoid = new BABYLON.Vector3(0.5, 0.9, 0.5);
-        
-        scene.collisionsEnabled = true;
-        scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
-        
-        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0,1,0), scene);
-        
-        // Initialize WebXR first
-        const xrHelper = await this.setupVR(scene);
-        
-        // Initialize builders and systems
-        this.modelBuilder = new ModelBuilder(scene);
-        scene.modelBuilder = this.modelBuilder;
-        
-        // Add item builder for KQ3 items (no physics)
-        this.itemBuilder = new ItemBuilder(scene);
-        scene.itemBuilder = this.itemBuilder;
 
-        // Create rooms and systems
-        await RoomBuilder.createRoom(scene);
-        
-        // Add systems and store references for cleanup
+        try {
+            // Optimize scene for mobile VR
+            scene.useRightHandedSystem = true;
+            scene.performancePriority = BABYLON.ScenePerformancePriority.Aggressive;
+            
+            // Optimize camera for VR performance
+            const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 1.6, 0), scene);
+            camera.attachControl(this.canvas, true);
+            camera.speed = 0.15;
+            camera.minZ = 0.1; // Better for VR
+            camera.keysUp = [87, 38];
+            camera.keysDown = [83, 40];
+            camera.keysLeft = [65, 37];
+            camera.keysRight = [68, 39];
+            
+            // Use more optimized lighting for VR
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            light.intensity = 0.8;
+            
+            // Initialize ModelBuilder and attach to scene
+            this.modelBuilder = new ModelBuilder(scene);
+            scene.modelBuilder = this.modelBuilder;
+            
+            // Initialize ItemBuilder with KQ3 item definitions
+            this.itemBuilder = new ItemBuilder(scene);
+            scene.itemBuilder = this.itemBuilder;
+            
+            // Create XR experience before other systems
+            const xrHelper = await this.setupVR(scene);
+            
+            // Create house and systems
+            await RoomBuilder.createRoom(scene);
+            this.initSystems(scene, xrHelper, camera);
+            
+            return scene;
+        } catch (error) {
+            console.error("Failed to create scene:", error);
+            throw error;
+        }
+    }
+    
+    initSystems(scene, xrHelper, camera) {
         this.addSystem(new InteractionSystem(scene, xrHelper));
         this.addSystem(new InventorySystem(scene));
         this.addSystem(new CatSystem(scene, this.modelBuilder));
         this.addSystem(new NavigationSystem(scene, camera));
         this.addSystem(new VRMovementSystem(scene, xrHelper));
         this.addSystem(new ManannanSystem(scene, this.modelBuilder));
-            
-        return scene;
-    }
-    
-    addSystem(system) {
-        if(system) { this.systems.push(system); }
     }
 
     async setupVR(scene) {
@@ -119,11 +120,24 @@ class Game {
     }
     
     cleanup() {
-        this.systems.forEach(system => { if(system && typeof system.dispose === 'function') system.dispose(); });
+        // Clear any active timers
+        clearInterval(this.updateIntervalId);
+        
+        this.systems.forEach(system => {
+            if (system && typeof system.dispose === 'function') {
+                system.dispose();
+            }
+        });
+        
         this.systems = [];
         
-        if(this.scene) this.scene.dispose();
-        if(this.engine) this.engine.dispose();
+        if (this.scene) {
+            this.scene.dispose();
+        }
+        
+        if (this.engine) {
+            this.engine.dispose();
+        }
     }
 }
 

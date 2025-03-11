@@ -6,6 +6,19 @@ export class ItemBuilder {
         this.cache = new Map();
         this.materialCache = new Map();
     }
+    
+    dispose() {
+        // Clear caches properly
+        this.cache.forEach(mesh => {
+            if (mesh && mesh.dispose) mesh.dispose();
+        });
+        this.cache.clear();
+        
+        this.materialCache.forEach(material => {
+            if (material && material.dispose) material.dispose();
+        });
+        this.materialCache.clear();
+    }
 
     createKQ3Item(type, position) {
         let item;
@@ -189,7 +202,7 @@ export class ItemBuilder {
         frame.material = this.createMaterial("#8B4513");
         frame.parent = container;
         
-        // Mirror surface
+        // Mirror surface - use simplified reflective material for performance
         const glass = BABYLON.MeshBuilder.CreateBox("glass", {
             width: 0.5, 
             height: 0.7, 
@@ -197,12 +210,15 @@ export class ItemBuilder {
         }, this.scene);
         glass.position.z = 0.03;
         
-        // Create reflective material
+        // Create simplified reflective material that works well in VR
         const mirrorMat = new BABYLON.StandardMaterial("mirrorMat", this.scene);
-        mirrorMat.diffuseTexture = new BABYLON.Texture("textures/mirror.png", this.scene);
-        mirrorMat.reflectionTexture = new BABYLON.MirrorTexture("mirror", 512, this.scene);
-        mirrorMat.reflectionTexture.mirrorPlane = new BABYLON.Plane(0, 0, -1, -0.01);
-        mirrorMat.reflectionTexture.level = 0.6;
+        mirrorMat.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+        mirrorMat.specularColor = new BABYLON.Color3(1, 1, 1);
+        mirrorMat.specularPower = 128;
+        mirrorMat.reflectionFresnelParameters = new BABYLON.FresnelParameters();
+        mirrorMat.reflectionFresnelParameters.bias = 0.1;
+        mirrorMat.reflectionFresnelParameters.power = 1;
+        
         glass.material = mirrorMat;
         glass.parent = container;
         
@@ -395,6 +411,7 @@ export class ItemBuilder {
         }
     }
     
+    // Optimize material creation with better caching
     createMaterial(colorHex, alpha = 1.0) {
         const cacheKey = `${colorHex}_${alpha}`;
         if (this.materialCache.has(cacheKey)) {
@@ -406,8 +423,13 @@ export class ItemBuilder {
         
         if (alpha < 1.0) {
             mat.alpha = alpha;
+            mat.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
         }
         
+        // Reduce specular reflection for more authentic KQ3 look
+        mat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+        
+        // Cache for reuse
         this.materialCache.set(cacheKey, mat);
         return mat;
     }
