@@ -1,3 +1,5 @@
+import { KQ3_COLORS, ITEMS } from '../kq3/constants.js';
+
 export class ItemBuilder {
     constructor(scene) {
         this.scene = scene;
@@ -53,24 +55,29 @@ export class ItemBuilder {
         const book = BABYLON.MeshBuilder.CreateBox("spellbook", {
             width: 0.3, height: 0.05, depth: 0.4
         }, this.scene);
-        book.material = this.createMaterial("#8B4513");
+        book.material = this.createMaterial(KQ3_COLORS.MAGENTA);
         book.parent = container;
         
-        // Remove physics assignment:
-        // book.physicsImpostor = new BABYLON.PhysicsImpostor(
-        //    book, BABYLON.PhysicsImpostor.BoxImpostor, 
-        //    { mass: 1, restitution: 0.5, friction: 0.5 }
-        // );
-        
-        // Add page details
+        // Pages with authentic KQ3 look
         const pages = BABYLON.MeshBuilder.CreateBox("pages", {
             width: 0.28, height: 0.06, depth: 0.38
         }, this.scene);
         pages.position.y = 0.01;
-        pages.material = this.createMaterial("#F5F5DC");
+        pages.material = this.createMaterial(KQ3_COLORS.LIGHT_GRAY);
         pages.parent = container;
         
-        this.setupInteraction(container, "spellbook", "Manannan's spell book. Better not touch it unless he's away!");
+        // Add magical runes on the cover
+        const runesMaterial = this.createMaterial(KQ3_COLORS.YELLOW);
+        runesMaterial.emissiveColor = BABYLON.Color3.FromHexString(KQ3_COLORS.YELLOW);
+        
+        const runeDecal = BABYLON.MeshBuilder.CreatePlane("runes", {
+            width: 0.25, height: 0.3
+        }, this.scene);
+        runeDecal.position.z = 0.026;
+        runeDecal.material = runesMaterial;
+        runeDecal.parent = container;
+        
+        this.setupInteraction(container, ITEMS.SPELLBOOK, "The Great Spellbook. Study it carefully when Manannan is away.");
         
         return container;
     }
@@ -192,7 +199,7 @@ export class ItemBuilder {
         
         // Create reflective material
         const mirrorMat = new BABYLON.StandardMaterial("mirrorMat", this.scene);
-        mirrorMat.diffuseColor = new BABYLON.Color3(0.8, 0.8, 1);
+        mirrorMat.diffuseTexture = new BABYLON.Texture("textures/mirror.png", this.scene);
         mirrorMat.reflectionTexture = new BABYLON.MirrorTexture("mirror", 512, this.scene);
         mirrorMat.reflectionTexture.mirrorPlane = new BABYLON.Plane(0, 0, -1, -0.01);
         mirrorMat.reflectionTexture.level = 0.6;
@@ -254,16 +261,29 @@ export class ItemBuilder {
     createEagleFeather() {
         const container = new BABYLON.TransformNode("eagle-feather-container", this.scene);
         
-        const feather = BABYLON.MeshBuilder.CreateBox("feather", {
-            width: 0.03, 
-            height: 0.01, 
-            depth: 0.2
+        // Create feather with authentic KQ3 colors
+        const featherStem = BABYLON.MeshBuilder.CreateCylinder("feather-stem", {
+            height: 0.2,
+            diameter: 0.01,
+            tessellation: 8
         }, this.scene);
-        feather.rotation.y = Math.PI / 4;
-        feather.material = this.createMaterial("#8B4513");
-        feather.parent = container;
+        featherStem.material = this.createMaterial(KQ3_COLORS.BROWN);
+        featherStem.rotation.x = Math.PI/2;
+        featherStem.parent = container;
         
-        this.setupInteraction(container, "eagle-feather", "An eagle feather. An essential component for the flying spell.");
+        // Create feather barbs
+        const featherBarbs = BABYLON.MeshBuilder.CreateCylinder("feather-barbs", {
+            height: 0.15,
+            diameterTop: 0.001,
+            diameterBottom: 0.05,
+            tessellation: 8
+        }, this.scene);
+        featherBarbs.position.z = 0.08;
+        featherBarbs.rotation.x = Math.PI/2;
+        featherBarbs.material = this.createMaterial(KQ3_COLORS.BROWN);
+        featherBarbs.parent = container;
+        
+        this.setupInteraction(container, "eagle-feather", "An eagle feather. Essential for the 'Fly Like an Eagle' spell.");
         this.setupPickable(container, "eagle-feather");
         
         return container;
@@ -332,6 +352,25 @@ export class ItemBuilder {
         };
         
         makePickable(mesh);
+        
+        // KQ3-style tooltip
+        this.showTooltip = (text) => {
+            if (!this.tooltipText) {
+                const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+                this.tooltipText = new BABYLON.GUI.TextBlock();
+                this.tooltipText.text = text;
+                this.tooltipText.color = KQ3_COLORS.LIGHT_CYAN;
+                this.tooltipText.fontSize = 24;
+                this.tooltipText.outlineWidth = 1;
+                this.tooltipText.outlineColor = KQ3_COLORS.BLACK;
+                this.tooltipText.top = "-200px";
+                this.tooltipText.fontFamily = "Arial";
+                advancedTexture.addControl(this.tooltipText);
+            } else {
+                this.tooltipText.text = text;
+                this.tooltipText.isVisible = true;
+            }
+        };
     }
     
     setupPickable(mesh, itemType) {
@@ -347,23 +386,6 @@ export class ItemBuilder {
                     }
                 )
             );
-        }
-    }
-    
-    showTooltip(text) {
-        if (!this.tooltipText) {
-            const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-            this.tooltipText = new BABYLON.GUI.TextBlock();
-            this.tooltipText.text = text;
-            this.tooltipText.color = "white";
-            this.tooltipText.fontSize = 24;
-            this.tooltipText.outlineWidth = 1;
-            this.tooltipText.outlineColor = "black";
-            this.tooltipText.top = "-200px";
-            advancedTexture.addControl(this.tooltipText);
-        } else {
-            this.tooltipText.text = text;
-            this.tooltipText.isVisible = true;
         }
     }
     

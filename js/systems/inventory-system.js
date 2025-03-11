@@ -1,3 +1,5 @@
+import { KQ3_COLORS, ITEMS } from '../kq3/constants.js';
+
 export class InventorySystem {
     constructor(scene) {
         this.scene = scene;
@@ -41,18 +43,27 @@ export class InventorySystem {
     createInventoryUI() {
         const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("inventoryUI");
         
-        // Create inventory panel at the bottom
+        // Create KQ3-style inventory panel (black box with cyan border)
         const panel = new BABYLON.GUI.StackPanel();
         panel.width = "100%";
         panel.height = "80px";
         panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
         panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-        panel.background = "#333333AA";
+        panel.background = KQ3_COLORS.BLACK;
         
-        // Inventory title
+        // Add border
+        const border = new BABYLON.GUI.Rectangle();
+        border.width = "100%";
+        border.height = "80px";
+        border.thickness = 2;
+        border.color = KQ3_COLORS.LIGHT_CYAN;
+        
+        // Inventory title in KQ3 style
         const title = new BABYLON.GUI.TextBlock();
         title.text = "INVENTORY";
-        title.color = "white";
+        title.color = KQ3_COLORS.LIGHT_CYAN;
+        title.fontSize = 16;
+        title.fontFamily = "Arial";
         title.height = "20px";
         panel.addControl(title);
         
@@ -62,6 +73,7 @@ export class InventorySystem {
         itemPanel.height = "60px";
         panel.addControl(itemPanel);
         
+        advancedTexture.addControl(border);
         advancedTexture.addControl(panel);
         
         this.advancedTexture = advancedTexture;
@@ -75,18 +87,32 @@ export class InventorySystem {
             const itemBtn = new BABYLON.GUI.Button();
             itemBtn.width = "50px";
             itemBtn.height = "50px";
-            itemBtn.color = "white";
+            itemBtn.color = KQ3_COLORS.LIGHT_CYAN;
             itemBtn.thickness = 1;
-            itemBtn.cornerRadius = 5;
-            itemBtn.background = "#555555";
+            itemBtn.cornerRadius = 0; // Square edges like in KQ3
+            itemBtn.background = KQ3_COLORS.DARK_GRAY;
             
-            const text = new BABYLON.GUI.TextBlock();
-            text.text = itemType.substring(0, 3).toUpperCase();
-            text.color = "white";
-            itemBtn.addControl(text);
+            // Show item icon - this could be extended with more item-specific icons
+            const itemText = new BABYLON.GUI.TextBlock();
+            itemText.text = this.getItemSymbol(itemType);
+            itemText.color = KQ3_COLORS.WHITE;
+            itemText.fontSize = 14;
+            itemBtn.addControl(itemText);
             
             this.itemPanel.addControl(itemBtn);
         });
+    }
+    
+    getItemSymbol(itemType) {
+        // Return first 2 chars in uppercase plus unicode symbol
+        switch(itemType) {
+            case ITEMS.EAGLE_FEATHER: return "EF ⋙";
+            case ITEMS.CAT_HAIR: return "CH ~";
+            case ITEMS.WAND: return "WD ⚡";
+            case ITEMS.MANDRAKE_ROOT: return "MR ⚘";
+            case ITEMS.FISH_OIL: return "FO ≈";
+            default: return itemType.substring(0, 2).toUpperCase();
+        }
     }
     
     showMessage(text) {
