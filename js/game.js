@@ -47,12 +47,12 @@ class Game {
 
     async createScene() {
         const scene = new BABYLON.Scene(this.engine);
+        scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
         
-        // Enable physics with optimized settings
-        scene.enablePhysics(
-            new BABYLON.Vector3(0, -9.81, 0),
-            new BABYLON.CannonJSPlugin(true, 10)
-        );
+        // Enable physics - no need to import CANNON, as it's already loaded in HTML
+        const gravityVector = new BABYLON.Vector3(0, -9.81, 0);
+        const physicsPlugin = new BABYLON.CannonJSPlugin(true, 10);
+        scene.enablePhysics(gravityVector, physicsPlugin);
         
         // Optimize physics simulation
         scene.getPhysicsEngine().setTimeStep(1/60);
