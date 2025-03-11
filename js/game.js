@@ -78,7 +78,14 @@ class Game {
             
             // Create house and systems
             await RoomBuilder.createRoom(scene);
-            this.initSystems(scene, xrHelper, camera);
+            
+            // Initialize systems directly instead of using initSystems
+            this.systems.push(new InteractionSystem(scene, xrHelper));
+            this.systems.push(new InventorySystem(scene));
+            this.systems.push(new CatSystem(scene, this.modelBuilder));
+            this.systems.push(new NavigationSystem(scene, camera));
+            this.systems.push(new VRMovementSystem(scene, xrHelper));
+            this.systems.push(new ManannanSystem(scene, this.modelBuilder));
             
             return scene;
         } catch (error) {
@@ -87,15 +94,6 @@ class Game {
         }
     }
     
-    initSystems(scene, xrHelper, camera) {
-        this.addSystem(new InteractionSystem(scene, xrHelper));
-        this.addSystem(new InventorySystem(scene));
-        this.addSystem(new CatSystem(scene, this.modelBuilder));
-        this.addSystem(new NavigationSystem(scene, camera));
-        this.addSystem(new VRMovementSystem(scene, xrHelper));
-        this.addSystem(new ManannanSystem(scene, this.modelBuilder));
-    }
-
     async setupVR(scene) {
         try {
             const xrHelper = await scene.createDefaultXRExperienceAsync({
