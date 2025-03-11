@@ -1,3 +1,5 @@
+import { KQ3_COLORS } from '../kq3/constants.js';
+
 export class ManannanSystem {
     constructor(scene, modelBuilder) {
         this.scene = scene;
@@ -39,6 +41,27 @@ export class ManannanSystem {
                 this.appearManannan();
             }
         }, timerTickMs);
+    }
+    
+    appearManannan() {
+        this.isManannanPresent = true;
+        if (this.manannan) {
+            this.manannan.position = new BABYLON.Vector3(0, 0, -2);
+            
+            // Check if player is doing something forbidden
+            // Add your game-specific checks here
+            
+            // Leave after 5 seconds
+            setTimeout(() => this.disappearManannan(), 5000);
+        }
+    }
+    
+    disappearManannan() {
+        if (this.manannan) {
+            this.manannan.position = new BABYLON.Vector3(0, -10, 0);
+        }
+        this.isManannanPresent = false;
+        this.warningShown = false;
     }
     
     showMessage(text) {
