@@ -49,15 +49,11 @@ class Game {
         const scene = new BABYLON.Scene(this.engine);
         scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
         
-        // Enable physics - no need to import CANNON, as it's already loaded in HTML
-        const gravityVector = new BABYLON.Vector3(0, -9.81, 0);
-        const physicsPlugin = new BABYLON.CannonJSPlugin(true, 10);
-        scene.enablePhysics(gravityVector, physicsPlugin);
+        // TEMPORARILY DISABLED PHYSICS
+        // const gravityVector = new BABYLON.Vector3(0, -9.81, 0);
+        // const physicsPlugin = new BABYLON.CannonJSPlugin(true, 10);
+        // scene.enablePhysics(gravityVector, physicsPlugin);
         
-        // Optimize physics simulation
-        scene.getPhysicsEngine().setTimeStep(1/60);
-        
-        // Camera and basic scene setup
         const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 1.6, 0), scene);
         camera.attachControl(this.canvas, true);
         camera.speed = 0.15;
@@ -76,11 +72,11 @@ class Game {
         // Initialize WebXR first
         const xrHelper = await this.setupVR(scene);
         
-        // Initialize ModelBuilder and attach to scene for global access
+        // Initialize builders and systems
         this.modelBuilder = new ModelBuilder(scene);
         scene.modelBuilder = this.modelBuilder;
         
-        // Add item builder
+        // Add item builder for KQ3 items (no physics)
         this.itemBuilder = new ItemBuilder(scene);
         scene.itemBuilder = this.itemBuilder;
 
@@ -104,7 +100,6 @@ class Game {
 
     async setupVR(scene) {
         try {
-            // Optimize XR configuration for Quest 2
             const xrHelper = await scene.createDefaultXRExperienceAsync({
                 floorMeshes: [scene.getMeshByName("mainHall_floor")],
                 uiOptions: { sessionMode: 'immersive-vr', referenceSpaceType: 'local-floor' },
@@ -112,7 +107,6 @@ class Game {
             });
             
             if(xrHelper && xrHelper.baseExperience) {
-                // Handle session end gracefully
                 xrHelper.baseExperience.onStateChangedObservable.add((state) => {
                     if(state === BABYLON.WebXRState.NOT_IN_XR){
                         console.log("XR session ended");
@@ -128,13 +122,9 @@ class Game {
     }
     
     cleanup() {
-        // Properly dispose all systems that have dispose methods
         this.systems.forEach(system => { if(system && typeof system.dispose === 'function') system.dispose(); });
-        
-        // Clear systems array
         this.systems = [];
         
-        // Dispose scene and engine
         if(this.scene) this.scene.dispose();
         if(this.engine) this.engine.dispose();
     }
