@@ -1,5 +1,3 @@
-import { KQ3_COLORS } from '../kq3/constants.js';
-
 export class ManannanSystem {
     constructor(scene, modelBuilder) {
         this.scene = scene;
@@ -7,10 +5,22 @@ export class ManannanSystem {
         this.isManannanPresent = false;
         this.warningShown = false;
         this.manannanTimer = null;
-        this.countdownMinutes = 25; // Classic KQ3 timer of ~25 minutes
+        this.countdownMinutes = 25;
         
+        // Create the setupManannan method before calling it
         this.setupManannan();
         this.startCountdown();
+    }
+    
+    setupManannan() {
+        try {
+            // Create Manannan entity
+            const manannan = this.modelBuilder.createWizard();
+            manannan.position = new BABYLON.Vector3(0, -10, 0); // Start hidden below floor
+            this.manannan = manannan;
+        } catch (error) {
+            console.error("Failed to setup Manannan:", error);
+        }
     }
     
     startCountdown() {
