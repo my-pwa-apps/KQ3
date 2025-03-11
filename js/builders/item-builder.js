@@ -116,6 +116,123 @@ export class ItemBuilder {
         return container;
     }
     
+    createFlourBarrel() {
+        const container = new BABYLON.TransformNode("flour-barrel-container", this.scene);
+        
+        const barrel = BABYLON.MeshBuilder.CreateCylinder("barrel", {
+            height: 1.0,
+            diameter: 0.8,
+            tessellation: 16
+        }, this.scene);
+        barrel.material = this.createMaterial("#8B5A2B");
+        barrel.parent = container;
+        
+        // Add barrel lid
+        const lid = BABYLON.MeshBuilder.CreateCylinder("barrel-lid", {
+            height: 0.05,
+            diameter: 0.85,
+            tessellation: 16
+        }, this.scene);
+        lid.position.y = 0.5;
+        lid.material = this.createMaterial("#A0522D");
+        lid.parent = container;
+        
+        this.setupInteraction(container, "flour-barrel", "A barrel of flour. Essential for baking.");
+        
+        return container;
+    }
+
+    createKnife() {
+        const container = new BABYLON.TransformNode("knife-container", this.scene);
+        
+        // Blade
+        const blade = BABYLON.MeshBuilder.CreateBox("blade", {
+            width: 0.02, 
+            height: 0.01, 
+            depth: 0.25
+        }, this.scene);
+        blade.material = this.createMaterial("#C0C0C0");
+        blade.parent = container;
+        
+        // Handle
+        const handle = BABYLON.MeshBuilder.CreateBox("handle", {
+            width: 0.03, 
+            height: 0.02, 
+            depth: 0.1
+        }, this.scene);
+        handle.position.z = -0.17;
+        handle.material = this.createMaterial("#8B4513");
+        handle.parent = container;
+        
+        this.setupInteraction(container, "knife", "A small knife. Useful for various tasks.");
+        this.setupPickable(container, "knife");
+        
+        return container;
+    }
+
+    createMirror() {
+        const container = new BABYLON.TransformNode("mirror-container", this.scene);
+        
+        // Frame
+        const frame = BABYLON.MeshBuilder.CreateBox("frame", {
+            width: 0.6, 
+            height: 0.8, 
+            depth: 0.05
+        }, this.scene);
+        frame.material = this.createMaterial("#8B4513");
+        frame.parent = container;
+        
+        // Mirror surface
+        const glass = BABYLON.MeshBuilder.CreateBox("glass", {
+            width: 0.5, 
+            height: 0.7, 
+            depth: 0.01
+        }, this.scene);
+        glass.position.z = 0.03;
+        
+        // Create reflective material
+        const mirrorMat = new BABYLON.StandardMaterial("mirrorMat", this.scene);
+        mirrorMat.diffuseColor = new BABYLON.Color3(0.8, 0.8, 1);
+        mirrorMat.reflectionTexture = new BABYLON.MirrorTexture("mirror", 512, this.scene);
+        mirrorMat.reflectionTexture.mirrorPlane = new BABYLON.Plane(0, 0, -1, -0.01);
+        mirrorMat.reflectionTexture.level = 0.6;
+        glass.material = mirrorMat;
+        glass.parent = container;
+        
+        this.setupInteraction(container, "mirror", "A mirror on the wall. It reflects your image.");
+        
+        return container;
+    }
+
+    createPorridgePot() {
+        const container = new BABYLON.TransformNode("porridge-pot-container", this.scene);
+        
+        // Pot
+        const pot = BABYLON.MeshBuilder.CreateCylinder("pot", {
+            height: 0.5,
+            diameterTop: 0.6,
+            diameterBottom: 0.4,
+            tessellation: 16
+        }, this.scene);
+        pot.material = this.createMaterial("#696969");
+        pot.parent = container;
+        
+        // Porridge inside
+        const porridge = BABYLON.MeshBuilder.CreateCylinder("porridge", {
+            height: 0.15,
+            diameterTop: 0.55,
+            diameterBottom: 0.55,
+            tessellation: 16
+        }, this.scene);
+        porridge.position.y = 0.1;
+        porridge.material = this.createMaterial("#F5DEB3");
+        porridge.parent = container;
+        
+        this.setupInteraction(container, "porridge-pot", "A pot of porridge. It's still warm.");
+        
+        return container;
+    }
+
     createChickenFeather() {
         const container = new BABYLON.TransformNode("chicken-feather-container", this.scene);
         
