@@ -1,6 +1,3 @@
-import * as CANNON from "../../libs/cannon/build/cannon.min.js";
-window.CANNON = CANNON;
-
 import { ManannanSystem } from './systems/manannan-system.js';
 import { ModelBuilder } from './builders/model-builder.js';
 import { InteractionSystem } from './systems/interaction-system.js';
@@ -49,7 +46,7 @@ class Game {
         const scene = new BABYLON.Scene(this.engine);
         scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
         
-        // TEMPORARILY DISABLED PHYSICS
+        // REMOVE PHYSICS INITIALIZATION
         // const gravityVector = new BABYLON.Vector3(0, -9.81, 0);
         // const physicsPlugin = new BABYLON.CannonJSPlugin(true, 10);
         // scene.enablePhysics(gravityVector, physicsPlugin);
