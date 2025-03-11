@@ -7,11 +7,23 @@ export class VRMovementSystem {
         this.lastUpdateTime = 0;
         this.movementThreshold = 0.15; // Increased threshold to prevent drift
         
+        // Don't call this.setupVRMovement() directly
+        // Instead, initialize if xrHelper exists
         if (xrHelper) {
             this.setupVRMovement();
         }
     }
 
+    setupVRMovement() {
+        if (!this.xrHelper) return;
+        
+        this.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+            if (state === BABYLON.WebXRState.IN_XR) {
+                this.setupControllers();
+            }
+        });
+    }
+    
     handleThumbstickMovement(axes, controller) {
         if (!this.xrHelper?.baseExperience?.camera) return;
         
