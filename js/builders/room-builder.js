@@ -192,12 +192,9 @@ export class RoomBuilder {
     }
     
     static async addMainHallFurniture(scene, parent) {
-        // Add physics to walls and floor
-        const walls = scene.getMeshByName("walls");
-        walls.physicsImpostor = new BABYLON.PhysicsImpostor(
-            walls, BABYLON.PhysicsImpostor.BoxImpostor,
-            { mass: 0, restitution: 0.1, friction: 0.8 }
-        );
+        // Remove this line that's causing the error:
+        // walls.physicsImpostor = new BABYLON.PhysicsImpostor(walls, BABYLON.PhysicsImpostor.BoxImpostor,
+        //     { mass: 0, restitution: 0.1, friction: 0.8 });
 
         // Add KQ3 specific items
         const spellbook = scene.itemBuilder.createKQ3Item('spellbook', 

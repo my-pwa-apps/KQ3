@@ -56,6 +56,12 @@ export class ItemBuilder {
         book.material = this.createMaterial("#8B4513");
         book.parent = container;
         
+        // Remove physics assignment:
+        // book.physicsImpostor = new BABYLON.PhysicsImpostor(
+        //    book, BABYLON.PhysicsImpostor.BoxImpostor, 
+        //    { mass: 1, restitution: 0.5, friction: 0.5 }
+        // );
+        
         // Add page details
         const pages = BABYLON.MeshBuilder.CreateBox("pages", {
             width: 0.28, height: 0.06, depth: 0.38
